@@ -51,7 +51,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
 
   var params = {
     contact_type:'Individual',
-    "return":'display_name,sort_name,email,title,organization_name,job_title',
+    "return":'display_name,sort_name,email,title,organization_name,job_title,phone,street_address,supplemental_address_1,city,state_province,postal_code,country',
     "option.limit" : req.sizeLimit,
   };
 
@@ -96,8 +96,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
       'co':'country',
       'l':'city',
       'st':'state_province',
-      'homepostaladdress':'street_address',
-      'postaladdress':'street_address',
+      'street':'street_address',
       'postalcode':'postal_code',
       'telephonenumber':'phone',
       'o':'organization_name',
