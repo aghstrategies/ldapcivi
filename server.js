@@ -37,11 +37,11 @@ server.bind(settings.ldap.basedn, function (req, res, next) {
 });
 
 //http://ldapjs.org/server.html authorize()
-server.search("", function(req, res, next) { 
+server.search("", function(req, res, next) {
   console.log(req.connection.ldap.bindDN.toString());
 //  if (!req.connection.ldap.bindDN.equals('cn=root'))
 //    return next(new ldap.InsufficientAccessRightsError());
-  return next(new ldap.OperationsError()); 
+  return next(new ldap.OperationsError());
   res.end();
 });
 
@@ -104,7 +104,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
       'company':'current_employer',
       'displayName':'display_name',
     }
-    var r= {'objectClass':["top","inetOrgPerson","person"],'cn':contact.sort_name,'homeurl':settings.civicrm.server +"/civicrm/contact/view?cid="+ contact.id};
+    var r= {'objectClass':["top","inetOrgPerson","person"],'cn':contact.sort_name,'homeurl':settings.civicrm.server +"/wp-admin/admin.php?page=CiviCRM&q=civicrm/contact/view&reset=1&cid="+ contact.id};
     for (v in map){
       if (typeof contact[map[v]] != "undefined") {
         r[v] = contact[map[v]];
@@ -116,7 +116,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
     if (typeof contact["supplemental_address_2"] != "undefined") {
       r['postaladdress']=r['postaladdress']+"\\n"+contact["supplemental_address_2"];
     }
-    r['info']="Contact civicrm\\n"+settings.civicrm.server +"/civicrm/contact/view?cid="+ contact.id; 
+    r['info']="Contact civicrm\\n"+settings.civicrm.server +"/civicrm/contact/view?cid="+ contact.id;
     return {'dn':'cn=civi_'+contact.id+', '+settings.ldap.basedn,'attributes':r};
   }
 
@@ -164,7 +164,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
     address=address.substring(1);
   }
 
-  console.log (req.filter.toString() +"-> searching "+query.type+ " for "  + address); 
+  console.log (req.filter.toString() +"-> searching "+query.type+ " for "  + address);
 
   civicrm_contact_search (address,function (error,contacts) {
     if (error) {
@@ -194,4 +194,3 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
 server.listen(settings.ldap.port, function() {
   console.log('LDAP server listening at %s', server.url);
 });
-
