@@ -51,7 +51,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
 
   var params = {
     contact_type:'Individual',
-    "return":'display_name,sort_name,email,title,organization_name,job_title,phone,street_address,supplemental_address_1,city,state_province,postal_code,country',
+    "return":'display_name,sort_name,first_name,last_name,email,title,organization_name,current_employer,job_title,phone,street_address,supplemental_address_1,city,state_province,postal_code,country',
     "option.limit" : req.sizeLimit,
   };
 
@@ -90,32 +90,33 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
     var map = {
       'mail':'email',
       'givenname':'first_name',
-      'mail':'email',
       'sn':'last_name',
       'title':'job_title',
       'co':'country',
       'l':'city',
       'st':'state_province',
       'street':'street_address',
+      'postaladdress':'street_address',
       'postalcode':'postal_code',
       'telephonenumber':'phone',
-      'o':'organization_name',
+      'o':'current_employer',
       'company':'current_employer',
       'displayName':'display_name',
     }
-    var r= {'objectClass':["top","inetOrgPerson","person"],'cn':contact.sort_name,'homeurl':settings.civicrm.server +"/wp-admin/admin.php?page=CiviCRM&q=civicrm/contact/view&reset=1&cid="+ contact.id};
+    var contactUrl = settings.civicrm.server +"/wp-admin/admin.php?page=CiviCRM&q=civicrm/contact/view&reset=1&cid="+ contact.id;
+    var r= {'objectClass':["top","inetOrgPerson","person"],'cn':contact.sort_name,'homeurl':contactUrl};
     for (v in map){
       if (typeof contact[map[v]] != "undefined") {
         r[v] = contact[map[v]];
       }
     }
-    if (typeof contact["supplemental_address_1"] != "undefined") {
-      r['postaladdress']=r['postaladdress']+"\\n"+contact["supplemental_address_1"];
+    if (typeof contact["supplemental_address_1"] != "undefined" && contact["supplemental_address_1"].length > 0) {
+      r['postaladdress']=r['postaladdress']+", "+contact["supplemental_address_1"];
     }
-    if (typeof contact["supplemental_address_2"] != "undefined") {
-      r['postaladdress']=r['postaladdress']+"\\n"+contact["supplemental_address_2"];
+    if (typeof contact["supplemental_address_2"] != "undefined" && contact["supplemental_address_2"].length > 0) {
+      r['postaladdress']=r['postaladdress']+", "+contact["supplemental_address_2"];
     }
-    r['info']="Contact civicrm\\n"+settings.civicrm.server +"/civicrm/contact/view?cid="+ contact.id;
+    r['info']='CiviCRM contact record: ' + contactUrl;
     return {'dn':'cn=civi_'+contact.id+', '+settings.ldap.basedn,'attributes':r};
   }
 
@@ -125,7 +126,7 @@ server.search(settings.ldap.SUFFIX, function(req, res, next) {
 
   if (query.type == "PresenceMatch") {
     //do something
-    var cid=req.dn.rdns[0].cn.substring(5);
+    var cid=req.dn.rdns[0].attrs.cn.value.substring(5);
     crmAPI.call ('contact','get',{id:cid,"option.limit":1,return:"first_name,last_name,email,current_employer,prefix_id,gender_id,street_address,supplemental_address_1,supplemental_address_2,city,postal_code,state_province,country,phone,job_title"},
       function (data) {
         if (data.is_error) {
